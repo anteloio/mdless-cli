@@ -8,9 +8,18 @@ This project uses Bun and runs TypeScript directly without a build step.
 
 ### Setup
 
+Symlink the CLI into a directory on your `PATH` that is **not** tied to a Node
+version. `npm link` installs into the *current* Node version's global bin, so
+with `nvm`/`.nvmrc` the `mdless` command vanishes the moment you `cd` into a
+project pinned to a different Node version. A plain symlink avoids that:
+
 ```bash
-npm link
+mkdir -p ~/.local/bin              # ensure the dir exists and is on your PATH
+ln -sf "$(pwd)/bin.mjs" ~/.local/bin/mdless
 ```
+
+`bin.mjs` runs under whatever Node is active and resolves `tsx` + `src/` by its
+own path, so `mdless` works from any folder under any Node version.
 
 ### Testing
 
