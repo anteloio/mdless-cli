@@ -29,6 +29,8 @@ After making changes, test by running `mdless` in any terminal - changes are ref
 
 Always update `README.md` after changing the code, so the docs and behavior stay in sync.
 
+Always update `FEATURES.md` when you add, change, or remove a feature. It lists all features in plain English.
+
 ### Releasing
 
 ```bash
