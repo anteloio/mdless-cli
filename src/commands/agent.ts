@@ -1,7 +1,6 @@
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, readdirSync, createWriteStream } from "node:fs";
+import { existsSync, readFileSync, readdirSync } from "node:fs";
 import { join } from "node:path";
-import { StringDecoder } from "node:string_decoder";
 import { playStartupSound } from "../playStartupSound.js";
 
 const SLEEP_SECONDS = 60;
@@ -239,50 +238,7 @@ function withTimestamps(text: string): string {
     .join("\n");
 }
 
-// One ANSI escape code: CSI (colors, cursor), OSC and other string codes
-// (titles, links), or a short two-byte code. The last byte of each form is
-// optional, so a code that truncate() cut short is removed too.
-const ANSI_CODE =
-  /\x1b(?:\[[0-?]*[ -/]*[@-~]?|[\]PX^_][^\x07\x1b\n]*(?:\x07|\x1b\\)?|[ -/]*[0-~]?)/g;
-
-// The start of an ANSI code at the very end of the text, with the rest of the
-// code still to come.
-const UNFINISHED_ANSI_CODE = /\x1b(?:\[[0-?]*[ -/]*|[\]PX^_][^\x07\x1b\n]*\x1b?|[ -/]*)$/;
-
-type WriteLog = (text: string) => void;
-
-// This function is the only owner of the log stream, so no text can reach the
-// log file without going through the ANSI filter.
-function createWriteLog(path: string): WriteLog {
-  const logStream = createWriteStream(path, { flags: "a" });
-  return (text) => {
-    logStream.write(text.replace(ANSI_CODE, ""));
-  };
-}
-
-// Stderr arrives in chunks that can end in the middle of an ANSI code or of a
-// UTF-8 character. This keeps the unfinished part until the next chunk, so
-// writeLog always sees the full code. Use one instance per stream: stdout text
-// must not join up with a partial stderr code.
-function createChunkJoiner() {
-  const decoder = new StringDecoder("utf8");
-  let held = "";
-  return {
-    write(chunk: Buffer): string {
-      const text = held + decoder.write(chunk);
-      const cut = text.search(UNFINISHED_ANSI_CODE);
-      held = cut === -1 ? "" : text.slice(cut);
-      return cut === -1 ? text : text.slice(0, cut);
-    },
-    end(): string {
-      const rest = held + decoder.end();
-      held = "";
-      return rest;
-    },
-  };
-}
-
-function runClaude(prompt: string, writeLog: WriteLog): Promise<number> {
+function runClaude(prompt: string): Promise<number> {
   return new Promise((resolve) => {
     const child = spawn(
       "claude",
@@ -306,23 +262,12 @@ function runClaude(prompt: string, writeLog: WriteLog): Promise<number> {
         buf = buf.slice(nl + 1);
         if (!line.trim()) continue;
         const formatted = formatStreamEvent(line);
-        if (formatted) {
-          const stamped = withTimestamps(formatted);
-          process.stdout.write(stamped);
-          writeLog(stamped);
-        }
+        if (formatted) process.stdout.write(withTimestamps(formatted));
       }
     });
-    const stderrChunks = createChunkJoiner();
-    child.stderr.on("data", (chunk) => {
-      process.stderr.write(chunk);
-      writeLog(stderrChunks.write(chunk));
-    });
-    child.on("close", () => writeLog(stderrChunks.end()));
+    child.stderr.on("data", (chunk) => process.stderr.write(chunk));
     child.on("error", (err) => {
-      const msg = `\n[agent] failed to spawn claude: ${err.message}\n`;
-      process.stderr.write(msg);
-      writeLog(msg);
+      process.stderr.write(`\n[agent] failed to spawn claude: ${err.message}\n`);
       resolve(1);
     });
     child.on("exit", (code) => resolve(code ?? 0));
@@ -356,19 +301,14 @@ export async function agentCommand(name: string, options: AgentOptions = {}): Pr
 
   playStartupSound();
 
-  const logDir = join(process.cwd(), ".mdless", "logs");
-  mkdirSync(logDir, { recursive: true });
-  const writeLog = createWriteLog(join(logDir, `${name}.log`));
-
   const runsLabel =
     maxRuns === Infinity ? `loop every ${SLEEP_SECONDS}s` : `${maxRuns} run${maxRuns === 1 ? "" : "s"}`;
   const titleColor = AGENT_COLOR;
   const banner =
     `\n${titleColor}${BOLD}  ✦ mdless · ${name}${RESET}\n` +
     `${DIM}  ${"─".repeat(40)}${RESET}\n` +
-    `${DIM}  ${runsLabel} · logs in .mdless/logs/${name}.log${RESET}\n`;
+    `${DIM}  ${runsLabel}${RESET}\n`;
   process.stdout.write(banner);
-  writeLog(banner);
 
   process.on("SIGINT", () => {
     process.stdout.write(`\n  ${DIM}${name} stopped${RESET}\n`);
@@ -376,18 +316,14 @@ export async function agentCommand(name: string, options: AgentOptions = {}): Pr
   });
 
   for (let run = 1; run <= maxRuns; run++) {
-    const header = `\n${DIM}── ${timestamp()} ─────────────────────────────${RESET}\n`;
-    process.stdout.write(header);
-    writeLog(header);
+    process.stdout.write(`\n${DIM}── ${timestamp()} ─────────────────────────────${RESET}\n`);
 
-    await runClaude(prompt, writeLog);
+    await runClaude(prompt);
 
     const isLast = run >= maxRuns;
     if (isLast) break;
 
-    const footer = `${DIM}  sleeping ${SLEEP_SECONDS}s…${RESET}\n`;
-    process.stdout.write(footer);
-    writeLog(footer);
+    process.stdout.write(`${DIM}  sleeping ${SLEEP_SECONDS}s…${RESET}\n`);
 
     await sleep(SLEEP_SECONDS);
   }

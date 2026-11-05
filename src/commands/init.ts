@@ -15,7 +15,7 @@ const BUNDLED_PROMPTS_DIR = join(
   "prompts",
 );
 
-const GITIGNORE_ENTRIES = [".mdless/worktrees/", ".mdless/logs/"];
+const GITIGNORE_ENTRIES = [".mdless/worktrees/"];
 
 function ensureGitignore(): void {
   const gitignore = join(process.cwd(), ".gitignore");
