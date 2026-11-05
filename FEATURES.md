@@ -43,4 +43,4 @@ This file lists what mdless does today in plain English. It covers what you can 
 
 - `mdless` with no command shows a menu with `init` and `exit`.
 - `mdless --version` shows the version, and `mdless --help` shows the commands.
-- When an agent starts, mdless plays a short sound.
+- When an agent starts, mdless plays a short random sound.
