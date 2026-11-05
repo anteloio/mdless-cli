@@ -26,6 +26,7 @@ This file lists what mdless does today in plain English. It covers what you can 
 
 - When an agent starts, mdless tells it to read the notes in `.mdless/learnings/`.
 - mdless tells every agent to save useful findings in that folder before it finishes.
+- mdless also tells every agent to update or delete notes that are old or wrong.
 - You can also write notes in that folder yourself.
 
 ## Terminal output
