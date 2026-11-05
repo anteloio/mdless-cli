@@ -43,6 +43,8 @@ Reflect on what happened this session. If you encountered any non-obvious proble
   .mdless/learnings/<descriptive-slug>.md
 
 Each file should cover one specific finding: what the problem was, what you tried, and what worked. Skip task-specific details — only save knowledge that is reusable across sessions.
+
+Also review any learnings you read at the start. If one is outdated, wrong, or no longer relevant, update or delete it — stale learnings are worse than no learnings.
 `;
 
 export function listAgents(cwd = process.cwd()): string[] {
