@@ -19,6 +19,8 @@ This file lists what mdless does today in plain English. It covers what you can 
 - `mdless agent` with no name shows a list of your agents, and you pick one.
 - If the agent name does not exist, mdless shows the agents that you have.
 - mdless runs Claude Code with permission prompts turned off, so an agent can run commands and change files without asking you.
+- mdless tells every agent that no human is watching. The agent does not stop to ask questions, and it picks a reasonable default.
+- If an agent is blocked, it writes what it needs in `.mdless/learnings/` and exits.
 
 ## Learnings
 

@@ -11,6 +11,19 @@ function timestamp(): string {
   return d.toTimeString().slice(0, 8);
 }
 
+const AUTONOMY_PREAMBLE = `\
+## You are running autonomously
+
+No human is watching this session. No one will answer your questions or confirm your actions.
+
+- Never stop to ask for approval, confirmation, or clarification.
+- When you need to make a decision, pick the most reasonable default and continue.
+- If you are genuinely blocked (missing credentials, task is ambiguous with no safe default), write a brief note to \`.mdless/learnings/<slug>.md\` explaining what you need, then exit cleanly.
+
+---
+
+`;
+
 const LEARNINGS_PREAMBLE = `\
 ## Session setup
 
@@ -54,7 +67,7 @@ function loadPrompt(name: string): string {
     process.exit(1);
   }
   const body = readFileSync(promptPath, "utf8");
-  return LEARNINGS_PREAMBLE + body + LEARNINGS_POSTAMBLE;
+  return AUTONOMY_PREAMBLE + LEARNINGS_PREAMBLE + body + LEARNINGS_POSTAMBLE;
 }
 
 const RESET = "\x1b[0m";
