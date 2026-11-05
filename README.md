@@ -88,8 +88,6 @@ Pass a count to cap the number of runs:
 mdless agent <name> --loop 2   # run twice, then exit
 ```
 
-Logs are written to `.mdless/logs/<name>.log`.
-
 ## 📋 Command reference
 
 | Command                        | What it does                                            |
