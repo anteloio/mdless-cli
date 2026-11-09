@@ -4,30 +4,20 @@ CLI tools for Claude Code developers.
 
 ## Development
 
-This project uses Bun. In development, `bin.mjs` runs the TypeScript in `src/`
-directly with `tsx`, so there is no build step. The published package is different:
-`bun run build` bundles `src/` and all dependencies into one file, `dist/index.js`,
-and the package `bin` points to it. The package has no runtime dependencies, so
-`npx @mdless/cli@latest` starts fast.
+This project uses Bun. In development, `bin.mjs` runs the TypeScript in `src/` directly with `tsx`, so there is no build step. The published package is different: `bun run build` bundles `src/` and all dependencies into one file, `dist/index.js`, and the package `bin` points to it. The package has no runtime dependencies, so `npx @mdless/cli@latest` starts fast.
 
-Files that the CLI reads at runtime (`assets/*.mp3`, `src/agents/prompts/`) are found
-from `PACKAGE_ROOT` in `src/paths.ts`. Keep `src/paths.ts` directly in `src/`, and
-add new runtime files to `files` in `package.json`.
+Files that the CLI reads at runtime (`assets/*.mp3`, `src/agents/prompts/`) are found from `PACKAGE_ROOT` in `src/paths.ts`. Keep `src/paths.ts` directly in `src/`, and add new runtime files to `files` in `package.json`.
 
 ### Setup
 
-Symlink the CLI into a directory on your `PATH` that is **not** tied to a Node
-version. `npm link` installs into the *current* Node version's global bin, so
-with `nvm`/`.nvmrc` the `mdless` command vanishes the moment you `cd` into a
-project pinned to a different Node version. A plain symlink avoids that:
+Symlink the CLI into a directory on your `PATH` that is **not** tied to a Node version. `npm link` installs into the *current* Node version's global bin, so with `nvm`/`.nvmrc` the `mdless` command vanishes the moment you `cd` into a project pinned to a different Node version. A plain symlink avoids that:
 
 ```bash
 mkdir -p ~/.local/bin              # ensure the dir exists and is on your PATH
 ln -sf "$(pwd)/bin.mjs" ~/.local/bin/mdless
 ```
 
-`bin.mjs` runs under whatever Node is active and resolves `tsx` + `src/` by its
-own path, so `mdless` works from any folder under any Node version.
+`bin.mjs` runs under whatever Node is active and resolves `tsx` + `src/` by its own path, so `mdless` works from any folder under any Node version.
 
 ### Testing
 
@@ -52,10 +42,7 @@ Always update `FEATURES.md` when you add, change, or remove a feature. It lists 
 
 ### Releasing
 
-Do not publish by hand. Every push to `main` (eg a merged pull request) runs
-`.github/workflows/publish.yml`. It runs the checks above. If they pass,
-semantic-release reads the commit messages since the last release and picks the
-next version:
+Do not publish by hand. Every push to `main` (eg a merged pull request) runs `.github/workflows/publish.yml`. It runs the checks above. If they pass, semantic-release reads the commit messages since the last release and picks the next version:
 
 | Commit                                            | Release                  |
 | ------------------------------------------------- | ------------------------ |
@@ -64,16 +51,12 @@ next version:
 | `feat!: ...`, or a `BREAKING CHANGE:` footer      | major (1.2.3 -> 2.0.0)   |
 | `chore:`, `docs:`, `refactor:`, `test:`, `ci:`    | no release               |
 
-The highest one wins: a merge with one `feat:` and three `fix:` commits gives a minor.
-With squash merges, the pull-request title becomes the commit message, so the title
-decides the release.
+The highest one wins: a merge with one `feat:` and three `fix:` commits gives a minor. With squash merges, the pull-request title becomes the commit message, so the title decides the release.
 
-Then semantic-release publishes to npm (trusted publishing, no token), and creates
-the git tag `vX.Y.Z` and a GitHub Release with the notes.
+Then semantic-release publishes to npm (trusted publishing, no token), and creates the git tag `vX.Y.Z` and a GitHub Release with the notes.
 
-The version in `package.json` stays `0.0.0-development` in git. semantic-release
-writes the real version only into the published package, so it never commits to
-`main`. The last released version is the latest `v*` git tag.
+The version in `package.json` stays `0.0.0-development` in git. semantic-release writes the real version only into the published package, so it never commits to `main`. The last released version is the latest `v*` git tag.
+
 ## Commands
 
 - `mdless` - Interactive mode with command menu
