@@ -7,7 +7,7 @@ This file lists what mdless does today in plain English. It covers what you can 
 - `mdless init` copies the default `orchestrator` agent into `.mdless/agents/`.
 - The `orchestrator` agent works through your GitHub issues and pull requests: it implements, reviews and fixes the work, and it leaves the merge to you.
 - `mdless init` does not replace a file that already exists, so your edits stay.
-- `mdless init` tells git to ignore the logs and worktrees.
+- `mdless init` tells git to ignore the worktrees.
 
 ## Agents
 
@@ -26,6 +26,7 @@ This file lists what mdless does today in plain English. It covers what you can 
 
 - When an agent starts, mdless tells it to read the notes in `.mdless/learnings/`.
 - mdless tells every agent to save useful findings in that folder before it finishes.
+- mdless also tells every agent to update or delete notes that are old or wrong.
 - You can also write notes in that folder yourself.
 
 ## Terminal output
@@ -34,12 +35,7 @@ This file lists what mdless does today in plain English. It covers what you can 
 - Each type of tool has its own color.
 - Each line starts with the time.
 - Each run ends with a summary of the turns, the duration, and the cost.
-
-## Logs
-
-- Each agent writes to its own log file, `.mdless/logs/<name>.log`.
-- New runs add to the end of the log file.
-- Logs are plain text, and colors stay in the terminal.
+- mdless does not save this output to a file. When you close the terminal, it is gone.
 
 ## Other
 
