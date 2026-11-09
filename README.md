@@ -1,6 +1,6 @@
 # @mdless/cli
 
-![mdless cli screenshot](https://raw.githubusercontent.com/mdless/mdless-cli/main/assets/screenshot.png)
+![mdless cli screenshot](https://raw.githubusercontent.com/anteloio/mdless-cli/main/assets/screenshot.png)
 
 **Mind less, ship more.**
 
@@ -8,17 +8,37 @@ Run custom Claude Code agent loops from plain markdown prompts in your repo.
 
 ## 📦 Installation
 
-#### Run instantly with npx
+#### Run with npx (recommended)
+
+Nothing to install. This command always runs the latest version:
 
 ```bash
-npx @mdless/cli
+npx @mdless/cli@latest
 ```
+
+Pass any command after it, for example:
+
+```bash
+npx @mdless/cli@latest init
+npx @mdless/cli@latest agent orchestrator --loop
+```
+
+Keep `@latest` in the command. Without it, npx can reuse an old copy that it saved before.
 
 #### Install globally with npm
 
 ```bash
 npm install -g @mdless/cli
 ```
+
+Then run `mdless` from any folder. Run the same command again to update.
+
+#### Requirements
+
+- Node.js 20.17 or newer
+- [Claude Code](https://code.claude.com/docs/en/overview) (the `claude` command), to run agents
+
+The examples below use `mdless`. With npx, write `npx @mdless/cli@latest` instead.
 
 ## 🧠 The idea
 

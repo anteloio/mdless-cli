@@ -4,7 +4,15 @@ CLI tools for Claude Code developers.
 
 ## Development
 
-This project uses Bun and runs TypeScript directly without a build step.
+This project uses Bun. In development, `bin.mjs` runs the TypeScript in `src/`
+directly with `tsx`, so there is no build step. The published package is different:
+`bun run build` bundles `src/` and all dependencies into one file, `dist/index.js`,
+and the package `bin` points to it. The package has no runtime dependencies, so
+`npx @mdless/cli@latest` starts fast.
+
+Files that the CLI reads at runtime (`assets/*.mp3`, `src/agents/prompts/`) are found
+from `PACKAGE_ROOT` in `src/paths.ts`. Keep `src/paths.ts` directly in `src/`, and
+add new runtime files to `files` in `package.json`.
 
 ### Setup
 
@@ -25,6 +33,17 @@ own path, so `mdless` works from any folder under any Node version.
 
 After making changes, test by running `mdless` in any terminal - changes are reflected immediately.
 
+Checks (CI runs all of them on every pull request and before every release):
+
+```bash
+bun run typecheck   # tsc --noEmit
+bun run test        # bun test
+bun run build       # bundle src/ into dist/index.js
+bun run smoke       # npm pack, install the tarball in a temp folder, run mdless --version, init and agent
+```
+
+`bun run smoke` uses a fake `claude` command, so it costs nothing.
+
 ### Documentation
 
 Always update `README.md` after changing the code, so the docs and behavior stay in sync.
@@ -33,12 +52,28 @@ Always update `FEATURES.md` when you add, change, or remove a feature. It lists 
 
 ### Releasing
 
-```bash
-npm version patch  # bumps version and creates git tag
-git push && git push --tags
-npm publish
-```
+Do not publish by hand. Every push to `main` (eg a merged pull request) runs
+`.github/workflows/publish.yml`. It runs the checks above. If they pass,
+semantic-release reads the commit messages since the last release and picks the
+next version:
 
+| Commit                                            | Release                  |
+| ------------------------------------------------- | ------------------------ |
+| `fix: ...`, `perf: ...`                           | patch (1.2.3 -> 1.2.4)   |
+| `feat: ...`                                       | minor (1.2.3 -> 1.3.0)   |
+| `feat!: ...`, or a `BREAKING CHANGE:` footer      | major (1.2.3 -> 2.0.0)   |
+| `chore:`, `docs:`, `refactor:`, `test:`, `ci:`    | no release               |
+
+The highest one wins: a merge with one `feat:` and three `fix:` commits gives a minor.
+With squash merges, the pull-request title becomes the commit message, so the title
+decides the release.
+
+Then semantic-release publishes to npm (trusted publishing, no token), and creates
+the git tag `vX.Y.Z` and a GitHub Release with the notes.
+
+The version in `package.json` stays `0.0.0-development` in git. semantic-release
+writes the real version only into the published package, so it never commits to
+`main`. The last released version is the latest `v*` git tag.
 ## Commands
 
 - `mdless` - Interactive mode with command menu
