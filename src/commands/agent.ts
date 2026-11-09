@@ -5,8 +5,7 @@ import { playStartupSound } from "../playStartupSound.js";
 
 const SLEEP_SECONDS = 60;
 
-function timestamp(): string {
-  const d = new Date();
+function timestamp(d: Date = new Date()): string {
   return d.toTimeString().slice(0, 8);
 }
 
@@ -274,35 +273,92 @@ function runClaude(prompt: string): Promise<number> {
   });
 }
 
-function sleep(seconds: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, seconds * 1000));
+// setTimeout fires at once for delays above 2^31-1 ms (about 24.8 days),
+// so wait in chunks to support long intervals.
+const MAX_TIMEOUT_MS = 2 ** 31 - 1;
+
+async function sleep(seconds: number): Promise<void> {
+  let remaining = seconds * 1000;
+  while (remaining > 0) {
+    const chunk = Math.min(remaining, MAX_TIMEOUT_MS);
+    await new Promise((resolve) => setTimeout(resolve, chunk));
+    remaining -= chunk;
+  }
+}
+
+const UNIT_SECONDS: Record<string, number> = { s: 1, m: 60, h: 3600, d: 86400 };
+
+// Parses an interval such as "30s", "10m", "2h", "1d" or "1h30m" into
+// seconds. Returns null when the text is not a valid interval.
+export function parseInterval(text: string): number | null {
+  const trimmed = text.trim().toLowerCase();
+  if (!/^(\d+(\.\d+)?[smhd])+$/.test(trimmed)) return null;
+  let total = 0;
+  for (const [, value, unit] of trimmed.matchAll(/(\d+(?:\.\d+)?)([smhd])/g)) {
+    total += Number(value) * UNIT_SECONDS[unit!]!;
+  }
+  return total > 0 ? total : null;
+}
+
+// Formats seconds back into a short interval, eg 5400 -> "1h30m".
+export function formatInterval(seconds: number): string {
+  let rest = Math.round(seconds);
+  const parts: string[] = [];
+  for (const [unit, size] of [["d", 86400], ["h", 3600], ["m", 60], ["s", 1]] as const) {
+    if (rest >= size) {
+      parts.push(`${Math.floor(rest / size)}${unit}`);
+      rest %= size;
+    }
+  }
+  return parts.join("") || "0s";
 }
 
 export interface AgentOptions {
-  // undefined → no --loop (run once)
+  // undefined → no --loop (run once, or forever with --every)
   // true      → --loop with no count (run forever)
   // number    → --loop <count> (run that many times)
   loop?: boolean | number;
+  // --every <interval>: run on repeat and wait this long between runs,
+  // eg "10m". Without it, the wait between runs is SLEEP_SECONDS.
+  every?: string;
 }
 
 export async function agentCommand(name: string, options: AgentOptions = {}): Promise<void> {
-  const loop = options.loop;
+  const { loop, every } = options;
 
   if (typeof loop === "number" && (!Number.isInteger(loop) || loop < 1)) {
     console.error(`✗ --loop count must be a positive integer (got ${loop}).`);
     process.exit(1);
   }
 
-  // How many times to run: once with no --loop, the given count with
-  // --loop <count>, unbounded with a bare --loop.
-  const maxRuns = loop === undefined ? 1 : typeof loop === "number" ? loop : Infinity;
+  const parsedEvery = every === undefined ? undefined : parseInterval(every);
+  if (parsedEvery === null) {
+    console.error(
+      `✗ invalid --every value "${every}".\n` +
+        `  Use a number followed by a unit: s (seconds), m (minutes), h (hours), d (days).\n` +
+        `  You can combine units. Examples: 30s, 10m, 2h, 1d, 1h30m.`,
+    );
+    process.exit(1);
+  }
+  const waitSeconds = parsedEvery ?? SLEEP_SECONDS;
+
+  // How many times to run: the given count with --loop <count>, unbounded
+  // with a bare --loop or with --every, otherwise once.
+  const maxRuns =
+    typeof loop === "number" ? loop : loop === true || every !== undefined ? Infinity : 1;
 
   const prompt = loadPrompt(name);
 
+  // Play the sound once per command, not once per run.
   playStartupSound();
 
+  const waitLabel = formatInterval(waitSeconds);
   const runsLabel =
-    maxRuns === Infinity ? `loop every ${SLEEP_SECONDS}s` : `${maxRuns} run${maxRuns === 1 ? "" : "s"}`;
+    maxRuns === Infinity
+      ? `loop every ${waitLabel}`
+      : maxRuns === 1
+        ? "1 run"
+        : `${maxRuns} runs, every ${waitLabel}`;
   const titleColor = AGENT_COLOR;
   const banner =
     `\n${titleColor}${BOLD}  ✦ mdless · ${name}${RESET}\n` +
@@ -323,8 +379,9 @@ export async function agentCommand(name: string, options: AgentOptions = {}): Pr
     const isLast = run >= maxRuns;
     if (isLast) break;
 
-    process.stdout.write(`${DIM}  sleeping ${SLEEP_SECONDS}s…${RESET}\n`);
+    const nextRun = new Date(Date.now() + waitSeconds * 1000);
+    process.stdout.write(`${DIM}  sleeping ${waitLabel}, next run at ${timestamp(nextRun)}…${RESET}\n`);
 
-    await sleep(SLEEP_SECONDS);
+    await sleep(waitSeconds);
   }
 }

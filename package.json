@@ -6,9 +6,13 @@
   "bin": {
     "mdless": "bin.mjs"
   },
+  "scripts": {
+    "test": "bun test"
+  },
   "files": [
     "bin.mjs",
     "src/",
+    "!src/**/*.test.ts",
     "assets/"
   ],
   "keywords": [

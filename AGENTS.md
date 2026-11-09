@@ -25,6 +25,8 @@ own path, so `mdless` works from any folder under any Node version.
 
 After making changes, test by running `mdless` in any terminal - changes are reflected immediately.
 
+Run the unit tests with `bun test`. Test files sit next to the code they test, as `*.test.ts`.
+
 ### Documentation
 
 Always update `README.md` after changing the code, so the docs and behavior stay in sync.
@@ -45,3 +47,4 @@ npm publish
 - `mdless init` - Copy default agent prompts into `.mdless/agents/`
 - `mdless agent <name>` - Run the agent in `.mdless/agents/<name>.md` once
 - `mdless agent <name> --loop` - Run the agent on repeat forever (`--loop <n>` runs it `<n>` times)
+- `mdless agent <name> --every <interval>` - Run the agent on repeat, waiting `<interval>` (eg `10m`) between runs
