@@ -7,13 +7,9 @@ import {
   readdirSync,
 } from "node:fs";
 import { join } from "node:path";
+import { PACKAGE_ROOT } from "../paths.js";
 
-const BUNDLED_PROMPTS_DIR = join(
-  import.meta.dirname!,
-  "..",
-  "agents",
-  "prompts",
-);
+const BUNDLED_PROMPTS_DIR = join(PACKAGE_ROOT, "src", "agents", "prompts");
 
 const GITIGNORE_ENTRIES = [".mdless/worktrees/"];
 

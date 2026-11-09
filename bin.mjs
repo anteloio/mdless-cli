@@ -1,4 +1,7 @@
 #!/usr/bin/env node
+// Development entry point. It runs src/ directly with tsx, so changes show up
+// right away. Symlink it onto your PATH (see AGENTS.md). The published package
+// does not use this file: its "bin" is dist/index.js, built by `bun run build`.
 import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";

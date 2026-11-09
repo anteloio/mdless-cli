@@ -1,9 +1,9 @@
-#!/usr/bin/env tsx
+#!/usr/bin/env node
 import { Command } from "commander";
 import { select } from "@inquirer/prompts";
-import packageJson from "../package.json" with { type: "json" };
 import { agentCommand, listAgents } from "./commands/agent.js";
 import { initCommand } from "./commands/init.js";
+import { packageVersion } from "./paths.js";
 import { withExitHandler } from "./utils.js";
 
 const banner = `
@@ -26,7 +26,7 @@ const commands = [
 async function interactiveMode(): Promise<void> {
   console.log(banner);
   console.log(
-    `\x1b[2m  Mind less, ship more. v${packageJson.version}\x1b[0m\n`,
+    `\x1b[2m  Mind less, ship more. v${packageVersion()}\x1b[0m\n`,
   );
 
   const choice = await withExitHandler(
@@ -56,7 +56,7 @@ async function interactiveMode(): Promise<void> {
 const program = new Command()
   .name("mdless")
   .description("CLI tools for Claude Code hard-working devs")
-  .version(packageJson.version);
+  .version(packageVersion());
 
 for (const cmd of commands) {
   program.command(cmd.name).description(cmd.description).action(cmd.action);
