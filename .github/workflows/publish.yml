@@ -1,22 +1,84 @@
+# Keep this file name: the trusted publisher on npmjs.com points to publish.yml.
+#
+# Every pull request and every push to main runs the checks.
+# A push to main then runs semantic-release, which reads the commit messages
+# since the last tag and decides the next version:
+#   fix: / perf:                 -> patch
+#   feat:                        -> minor
+#   feat!: / BREAKING CHANGE:    -> major
+#   chore: / docs: / ci: / ...   -> no release
+# If any check fails, nothing is published.
 name: Publish to npm
 
 on:
   push:
-    tags:
-      - "v*"
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  # Cancel old runs on pull requests, but never stop a release halfway.
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
 
 jobs:
-  publish:
+  test:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with:
           node-version: "24"
-          registry-url: "https://registry.npmjs.org"
 
-      - run: npm publish
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.8"
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run typecheck
+
+      # `bun test` exits with an error when there are no test files yet.
+      - run: bun run test --pass-with-no-tests
+
+      - run: bun run build
+
+      # Packs the package, installs the tarball and runs the CLI like a user.
+      - run: bun run smoke
+
+  release:
+    needs: test
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # push the tag and create the GitHub Release
+      issues: write # comment on issues that the release closes
+      pull-requests: write # comment on pull requests that the release includes
+      id-token: write # npm trusted publishing (OIDC): no NPM_TOKEN
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # semantic-release needs all commits and tags
+
+      # No registry-url here: it writes an .npmrc that breaks the OIDC login
+      # of semantic-release.
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "24"
+
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.3.8"
+
+      - run: bun install --frozen-lockfile
+
+      - run: bun run build
+
+      # Writes the new version into package.json (only on the runner, no commit),
+      # publishes to npm, then pushes the tag and creates the GitHub Release.
+      - run: npx semantic-release
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

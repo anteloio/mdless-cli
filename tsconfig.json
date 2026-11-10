@@ -8,7 +8,13 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
     "declaration": false,
-    "noEmit": true
+    "noEmit": true,
+    "types": [
+      "bun"
+    ],
+    "allowImportingTsExtensions": true
   },
-  "include": ["src/**/*"]
+  "include": [
+    "src/**/*"
+  ]
 }

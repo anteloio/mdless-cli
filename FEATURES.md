@@ -2,6 +2,13 @@
 
 This file lists what mdless does today in plain English. It covers what you can do and see, not how the code works.
 
+## Installation
+
+- `npx @mdless/cli@latest` runs mdless without installing anything, and it always runs the latest version.
+- You can also install it with `npm install -g @mdless/cli`.
+- mdless needs Node.js 20.17 or newer.
+- When a fix or a new feature is merged, a new version goes to npm right away.
+
 ## Setup
 
 - `mdless init` copies the default `orchestrator` agent into `.mdless/agents/`.
