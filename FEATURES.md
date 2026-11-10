@@ -22,6 +22,9 @@ This file lists what mdless does today in plain English. It covers what you can 
 - `mdless agent <name>` runs the agent once.
 - `mdless agent <name> --loop` runs the agent forever, with a 60-second wait between runs.
 - `mdless agent <name> --loop <n>` runs the agent `<n>` times, with the same wait.
+- `mdless agent <name> --every 10m` runs the agent forever, with a 10-minute wait between runs. You can use seconds, minutes, hours or days, eg `30s`, `2h`, `1d` or `1h30m`.
+- `--every` and `--loop <n>` work together: `--every 1h --loop 3` runs the agent three times, one hour apart.
+- Between runs, mdless shows the time of the next run.
 - If a run fails, the loop continues with the next run.
 - `mdless agent` with no name shows a list of your agents, and you pick one.
 - If the agent name does not exist, mdless shows the agents that you have.
@@ -48,4 +51,4 @@ This file lists what mdless does today in plain English. It covers what you can 
 
 - `mdless` with no command shows a menu with `init` and `exit`.
 - `mdless --version` shows the version, and `mdless --help` shows the commands.
-- When an agent starts, mdless plays a short random sound.
+- When an agent starts, mdless plays a short random sound. It plays once per command, not before each run of a loop.

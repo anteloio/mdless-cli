@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { Command } from "commander";
 import { select } from "@inquirer/prompts";
-import { agentCommand, listAgents } from "./commands/agent.js";
+import { agentCommand, listAgents, type AgentOptions } from "./commands/agent.js";
 import { initCommand } from "./commands/init.js";
 import { packageVersion } from "./paths.js";
 import { withExitHandler } from "./utils.js";
@@ -70,7 +70,11 @@ program
     "Run the agent on repeat — forever, or <count> times if given",
     (v) => parseInt(v, 10),
   )
-  .action(async (name: string | undefined, options: { loop?: boolean | number }) => {
+  .option(
+    "--every <interval>",
+    "Run the agent on repeat and wait <interval> between runs, eg 30s, 10m, 2h, 1d",
+  )
+  .action(async (name: string | undefined, options: AgentOptions) => {
     if (!name) {
       const agents = listAgents();
       if (agents.length === 0) {

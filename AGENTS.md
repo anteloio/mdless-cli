@@ -34,6 +34,8 @@ bun run smoke       # npm pack, install the tarball in a temp folder, run mdless
 
 `bun run smoke` uses a fake `claude` command, so it costs nothing.
 
+Unit tests use `bun test`. Test files sit next to the code they test, as `*.test.ts`.
+
 ### Documentation
 
 Always update `README.md` after changing the code, so the docs and behavior stay in sync.
@@ -72,3 +74,4 @@ npm lets you remove a version only in rare cases, and a version number can never
 - `mdless init` - Copy default agent prompts into `.mdless/agents/`
 - `mdless agent <name>` - Run the agent in `.mdless/agents/<name>.md` once
 - `mdless agent <name> --loop` - Run the agent on repeat forever (`--loop <n>` runs it `<n>` times)
+- `mdless agent <name> --every <interval>` - Run the agent on repeat, waiting `<interval>` (eg `10m`) between runs

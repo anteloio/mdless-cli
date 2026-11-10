@@ -108,6 +108,24 @@ Pass a count to cap the number of runs:
 mdless agent <name> --loop 2   # run twice, then exit
 ```
 
+#### Run an agent on a schedule
+
+```bash
+mdless agent <name> --every 10m
+```
+
+Runs the agent on repeat and waits the given time between runs. The wait starts
+when a run ends. Use `s`, `m`, `h` or `d`, or combine them: `30s`, `10m`, `2h`,
+`1d`, `1h30m`. Stop with `Ctrl-C`.
+
+Add `--loop <n>` to cap the number of runs:
+
+```bash
+mdless agent <name> --every 1h --loop 3   # three runs, one hour apart
+```
+
+The startup sound plays once when the command starts, not before each run.
+
 ## 📋 Command reference
 
 | Command                        | What it does                                            |
@@ -117,6 +135,7 @@ mdless agent <name> --loop 2   # run twice, then exit
 | `mdless agent <name>`          | Run a single agent once from `.mdless/agents/<name>.md` |
 | `mdless agent <name> --loop`   | Run the agent on repeat, forever                        |
 | `mdless agent <name> --loop <n>` | Run the agent `<n>` times, then exit                  |
+| `mdless agent <name> --every <interval>` | Run the agent on repeat, waiting `<interval>` between runs (eg `10m`) |
 
 ## 📄 License
 
