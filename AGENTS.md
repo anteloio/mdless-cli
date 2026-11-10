@@ -51,11 +51,20 @@ Do not publish by hand. Every push to `main` (eg a merged pull request) runs `.g
 | `feat!: ...`, or a `BREAKING CHANGE:` footer      | major (1.2.3 -> 2.0.0)   |
 | `chore:`, `docs:`, `refactor:`, `test:`, `ci:`    | no release               |
 
-The highest one wins: a merge with one `feat:` and three `fix:` commits gives a minor. With squash merges, the pull-request title becomes the commit message, so the title decides the release.
+The highest one wins: a merge with one `feat:` and three `fix:` commits gives a minor. The type must be in lowercase: `Feat:` gives no release. The type `revert:` also gives no release.
 
-Then semantic-release publishes to npm (trusted publishing, no token), and creates the git tag `vX.Y.Z` and a GitHub Release with the notes.
+Merge pull requests with squash merge. The pull-request title then becomes the commit message on `main`, so the title decides the release. `.github/workflows/pr-title.yml` checks the title on every pull request and shows the release it will give. Run the same check locally with `sh scripts/check-pr-title.sh "<title>"`.
+
+After it picks the version, semantic-release publishes to npm (trusted publishing, no token), and creates the git tag `vX.Y.Z` and a GitHub Release with the notes.
 
 The version in `package.json` stays `0.0.0-development` in git. semantic-release writes the real version only into the published package, so it never commits to `main`. The last released version is the latest `v*` git tag.
+
+### Undoing a bad release
+
+npm lets you remove a version only in rare cases, and a version number can never be used again. So publish a new version instead.
+
+- Fix it or revert it in a pull request titled `fix: ...`, eg `fix: revert "feat: add --every"`. Do not keep the default GitHub title `Revert "..."`: it gives no release, and the title check fails. After the merge, CI publishes a new patch in a few minutes.
+- If users must stop getting the bad version right now, point `latest` back to the last good version by hand (needs your npm login): `npm dist-tag add @mdless/cli@<good version> latest`. `npx @mdless/cli@latest` then runs that version. The next release moves `latest` forward again.
 
 ## Commands
 

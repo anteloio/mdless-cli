@@ -1,0 +1,24 @@
+# The pull-request title becomes the commit message after a squash merge, and
+# semantic-release reads that message to pick the next version
+# (see publish.yml). A title that does not follow conventional commits gives
+# no release, and nothing warns about it. This check fails instead.
+name: PR title
+
+on:
+  pull_request:
+    types: [opened, edited, reopened, synchronize]
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+
+      # The title goes through an env variable, never straight into the shell,
+      # so a title with quotes or $(...) cannot run commands.
+      - run: sh scripts/check-pr-title.sh "$TITLE"
+        env:
+          TITLE: ${{ github.event.pull_request.title }}
